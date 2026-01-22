@@ -53,6 +53,47 @@
                 </div>
               </div>
 
+              <%# マッチングが成立している場合、プロジェクトオーナーのSNS情報を表示 %>
+              <% if scout.status == 'accepted' && Match.exists?(project: scout.project, matched_user_id: current_user.id) %>
+                <div class="alert alert-success mt-3">
+                  <h6 class="alert-heading">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    マッチング成立！プロジェクトオーナーの連絡先
+                  </h6>
+                  <% owner_sns_links = scout.project.owner.sns_links.where(visible_after_match: true) %>
+                  <% if owner_sns_links.any? %>
+                    <div class="list-group list-group-flush">
+                      <% owner_sns_links.each do |sns_link| %>
+                        <a href="<%= sns_link.url %>" target="_blank" class="list-group-item list-group-item-action d-flex align-items-center py-2">
+                          <% case sns_link.platform %>
+                          <% when 'Twitter' %>
+                            <i class="bi bi-twitter me-2 text-primary"></i>
+                          <% when 'Instagram' %>
+                            <i class="bi bi-instagram me-2" style="color: #E4405F;"></i>
+                          <% when 'Facebook' %>
+                            <i class="bi bi-facebook me-2 text-primary"></i>
+                          <% when 'Discord' %>
+                            <i class="bi bi-discord me-2" style="color: #5865F2;"></i>
+                          <% when 'Slack' %>
+                            <i class="bi bi-slack me-2" style="color: #4A154B;"></i>
+                          <% when 'LINE' %>
+                            <i class="bi bi-line me-2" style="color: #00B900;"></i>
+                          <% when 'Email' %>
+                            <i class="bi bi-envelope me-2"></i>
+                          <% else %>
+                            <i class="bi bi-link-45deg me-2"></i>
+                          <% end %>
+                          <span><strong><%= sns_link.platform %>:</strong> <%= sns_link.url %></span>
+                          <i class="bi bi-box-arrow-up-right ms-auto"></i>
+                        </a>
+                      <% end %>
+                    </div>
+                  <% else %>
+                    <p class="mb-0 small">プロジェクトオーナーの連絡先が登録されていません。</p>
+                  <% end %>
+                </div>
+              <% end %>
+
               <% if scout.status == 'pending' %>
                 <div class="mt-3">
                   <%= button_to '承認する', accept_scout_path(scout), method: :post, class: 'btn btn-success me-2' %>
@@ -101,6 +142,47 @@
                   <% end %>
                 </div>
               </div>
+
+              <%# マッチングが成立している場合、スキルホルダーのSNS情報を表示 %>
+              <% if scout.status == 'accepted' && Match.exists?(project: scout.project, matched_user_id: scout.scouted_user_id) %>
+                <div class="alert alert-success mt-3 mb-0">
+                  <h6 class="alert-heading">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    マッチング成立！スキルホルダーの連絡先
+                  </h6>
+                  <% scouted_user_sns_links = scout.scouted_user.sns_links.where(visible_after_match: true) %>
+                  <% if scouted_user_sns_links.any? %>
+                    <div class="list-group list-group-flush">
+                      <% scouted_user_sns_links.each do |sns_link| %>
+                        <a href="<%= sns_link.url %>" target="_blank" class="list-group-item list-group-item-action d-flex align-items-center py-2">
+                          <% case sns_link.platform %>
+                          <% when 'Twitter' %>
+                            <i class="bi bi-twitter me-2 text-primary"></i>
+                          <% when 'Instagram' %>
+                            <i class="bi bi-instagram me-2" style="color: #E4405F;"></i>
+                          <% when 'Facebook' %>
+                            <i class="bi bi-facebook me-2 text-primary"></i>
+                          <% when 'Discord' %>
+                            <i class="bi bi-discord me-2" style="color: #5865F2;"></i>
+                          <% when 'Slack' %>
+                            <i class="bi bi-slack me-2" style="color: #4A154B;"></i>
+                          <% when 'LINE' %>
+                            <i class="bi bi-line me-2" style="color: #00B900;"></i>
+                          <% when 'Email' %>
+                            <i class="bi bi-envelope me-2"></i>
+                          <% else %>
+                            <i class="bi bi-link-45deg me-2"></i>
+                          <% end %>
+                          <span><strong><%= sns_link.platform %>:</strong> <%= sns_link.url %></span>
+                          <i class="bi bi-box-arrow-up-right ms-auto"></i>
+                        </a>
+                      <% end %>
+                    </div>
+                  <% else %>
+                    <p class="mb-0 small">スキルホルダーの連絡先が登録されていません。</p>
+                  <% end %>
+                </div>
+              <% end %>
             </div>
           </div>
         <% end %>
