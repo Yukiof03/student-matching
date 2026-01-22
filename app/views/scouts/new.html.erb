@@ -35,12 +35,11 @@
 
           <!-- Scout Form -->
           <% if @projects.any? %>
-            <% first_project = @projects.first %>
-            <%= form_with url: project_scouts_path(first_project, user_id: @user.id), method: :post, data: { turbo: false }, html: { id: 'scoutForm' } do |f| %>
+            <%= form_with url: '', method: :post, local: true, html: { id: 'scoutForm' } do |f| %>
               <div class="mb-3">
                 <%= label_tag :project_id, 'スカウトするプロジェクトを選択', class: 'form-label' %>
                 <%= select_tag :project_id,
-                    options_from_collection_for_select(@projects, :id, :title, first_project.id),
+                    options_from_collection_for_select(@projects, :id, :title),
                     {
                       class: 'form-select',
                       required: true,
