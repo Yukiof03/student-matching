@@ -24,7 +24,7 @@ Rails.application.routes.draw do
   end
 
   # Scouts management
-  resources :scouts, only: [:index, :show] do
+  resources :scouts, only: [:index, :show, :new] do
     member do
       post 'accept'
       post 'reject'

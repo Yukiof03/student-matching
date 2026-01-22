@@ -97,53 +97,7 @@
                 <% end %>
               </div>
               <div class="card-footer bg-white">
-                <!-- Scout button with modal -->
-                <button type="button" class="btn btn-sm btn-primary w-100" data-bs-toggle="modal" data-bs-target="#scoutModal<%= user.id %>">
-                  スカウトする
-                </button>
-
-                <!-- Scout Modal -->
-                <div class="modal fade" id="scoutModal<%= user.id %>" tabindex="-1" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title"><%= user.name %>さんをスカウト</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                      </div>
-                      <%= form_with url: '', method: :post, data: { turbo: false }, html: { id: "scoutForm#{user.id}" } do |f| %>
-                        <div class="modal-body">
-                          <% if current_user.projects.active.any? %>
-                            <div class="mb-3">
-                              <%= label_tag :project_select, 'プロジェクトを選択', class: 'form-label' %>
-                              <%= select_tag :project_id,
-                                  options_from_collection_for_select(current_user.projects.active, :id, :title),
-                                  {
-                                    prompt: 'プロジェクトを選択してください',
-                                    class: 'form-select',
-                                    required: true,
-                                    onchange: "document.getElementById('scoutForm#{user.id}').action = '/projects/' + this.value + '/scouts?user_id=#{user.id}'"
-                                  } %>
-                            </div>
-                            <div class="mb-3">
-                              <%= f.label :message, 'スカウトメッセージ', class: 'form-label' %>
-                              <%= f.text_area :message, rows: 4, class: 'form-control', placeholder: 'プロジェクトの魅力や、なぜこの人をスカウトするのかを伝えましょう' %>
-                            </div>
-                          <% else %>
-                            <div class="alert alert-warning">
-                              スカウトを送るには、まず公開中のプロジェクトを作成してください。
-                            </div>
-                          <% end %>
-                        </div>
-                        <div class="modal-footer">
-                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                          <% if current_user.projects.active.any? %>
-                            <%= f.submit 'スカウトする', class: 'btn btn-primary', data: { disable_with: '送信中...' } %>
-                          <% end %>
-                        </div>
-                      <% end %>
-                    </div>
-                  </div>
-                </div>
+                <%= link_to 'スカウトする', new_scout_path(user_id: user.id), class: 'btn btn-sm btn-primary w-100' %>
               </div>
             </div>
           </div>

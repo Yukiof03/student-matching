@@ -12,6 +12,15 @@ class ScoutsController < ApplicationController
   def show
   end
 
+  def new
+    @user = User.find(params[:user_id])
+    @projects = current_user.projects.active
+
+    if @projects.empty?
+      redirect_to search_path, alert: 'スカウトを送るには、まず公開中のプロジェクトを作成してください。'
+    end
+  end
+
   def create
     @project = Project.find(params[:project_id])
     @user = User.find(params[:user_id])

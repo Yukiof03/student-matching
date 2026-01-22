@@ -1,0 +1,104 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="bi bi-person-check me-2"></i>
+            <%= @user.name %>さんをスカウト
+          </h4>
+        </div>
+        <div class="card-body">
+          <!-- User Info -->
+          <div class="mb-4 p-3 bg-light rounded">
+            <h5 class="mb-3">スカウト対象者</h5>
+            <div class="mb-3">
+              <strong><%= @user.name %></strong>
+            </div>
+
+            <!-- Skills -->
+            <div class="mb-3">
+              <small class="text-muted d-block mb-2">スキル:</small>
+              <% @user.skills.each do |skill| %>
+                <span class="badge bg-secondary me-1 mb-1"><%= skill.name %></span>
+              <% end %>
+            </div>
+
+            <!-- Introduction -->
+            <% if @user.skill_holder_profile.introduction.present? %>
+              <div>
+                <small class="text-muted d-block mb-2">自己紹介:</small>
+                <p class="mb-0 text-muted"><%= @user.skill_holder_profile.introduction %></p>
+              </div>
+            <% end %>
+          </div>
+
+          <!-- Scout Form -->
+          <%= form_with url: '', method: :post, data: { turbo: false }, html: { id: 'scoutForm' } do |f| %>
+            <div class="mb-3">
+              <%= label_tag :project_id, 'スカウトするプロジェクトを選択', class: 'form-label' %>
+              <%= select_tag :project_id,
+                  options_from_collection_for_select(@projects, :id, :title),
+                  {
+                    prompt: 'プロジェクトを選択してください',
+                    class: 'form-select',
+                    required: true,
+                    onchange: "document.getElementById('scoutForm').action = '/projects/' + this.value + '/scouts?user_id=#{@user.id}'"
+                  } %>
+              <small class="form-text text-muted">
+                このユーザーをどのプロジェクトにスカウトしますか？
+              </small>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :message, 'スカウトメッセージ', class: 'form-label' %>
+              <%= f.text_area :message, rows: 6, class: 'form-control',
+                  placeholder: 'プロジェクトの魅力や、なぜこの人をスカウトするのかを伝えましょう。
+
+例:
+- プロジェクトのビジョンや目標
+- この人のスキルがなぜ必要か
+- プロジェクトに参加するメリット' %>
+            </div>
+
+            <div class="d-flex gap-2">
+              <%= f.submit 'スカウトを送信', class: 'btn btn-primary', data: { disable_with: '送信中...' } %>
+              <%= link_to 'キャンセル', search_path, class: 'btn btn-outline-secondary' %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Available Projects List -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <h5 class="mb-0">スカウト可能なプロジェクト一覧</h5>
+        </div>
+        <div class="card-body">
+          <% if @projects.any? %>
+            <div class="list-group">
+              <% @projects.each do |project| %>
+                <div class="list-group-item">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1"><%= project.title %></h6>
+                    <small class="text-muted"><%= category_label(project.category) %></small>
+                  </div>
+                  <p class="mb-1 small text-muted"><%= truncate(project.purpose, length: 100) %></p>
+                  <small class="text-muted">
+                    <i class="bi bi-people-fill me-1"></i>
+                    <%= project.people_needed %>人募集
+                  </small>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="alert alert-warning mb-0">
+              公開中のプロジェクトがありません。
+              <%= link_to 'プロジェクトを作成', new_project_path, class: 'alert-link' %>してください。
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
