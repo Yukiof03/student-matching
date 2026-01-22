@@ -20,42 +20,40 @@ class Application < ApplicationRecord
     )
   end
 
-  # Create match if both application and scout are accepted
+  # Create match when application is accepted
   def check_and_create_match
     return unless status == 'accepted'
     return if Match.exists?(project_id: project_id, matched_user_id: applicant_id)
 
+    # スカウトが存在するか確認（オプション）
     scout = Scout.find_by(
       project_id: project_id,
-      scouted_user_id: applicant_id,
-      status: 'accepted'
+      scouted_user_id: applicant_id
     )
 
-    if scout
-      # 双方向のMatchレコードを作成
-      ActiveRecord::Base.transaction do
-        owner_id = project.owner_id
+    # 応募が承認されたらマッチング作成（スカウトの有無に関わらず）
+    ActiveRecord::Base.transaction do
+      owner_id = project.owner_id
 
-        # スキルホルダー用のMatchレコード
-        match_for_holder = Match.create!(
-          project: project,
-          scout: scout,
-          application: self,
-          matched_user_id: applicant_id,  # スキルホルダー
-          matched_at: Time.current
-        )
+      # スキルホルダー用のMatchレコード
+      match_for_holder = Match.create!(
+        project: project,
+        scout: scout,  # スカウトがない場合はnil
+        application: self,
+        matched_user_id: applicant_id,  # スキルホルダー
+        matched_at: Time.current
+      )
 
-        # プロジェクトオーナー用のMatchレコード
-        Match.create!(
-          project: project,
-          scout: scout,
-          application: self,
-          matched_user_id: owner_id,  # プロジェクトオーナー
-          matched_at: Time.current
-        )
+      # プロジェクトオーナー用のMatchレコード
+      Match.create!(
+        project: project,
+        scout: scout,  # スカウトがない場合はnil
+        application: self,
+        matched_user_id: owner_id,  # プロジェクトオーナー
+        matched_at: Time.current
+      )
 
-        match_for_holder
-      end
+      match_for_holder
     end
   end
 end
