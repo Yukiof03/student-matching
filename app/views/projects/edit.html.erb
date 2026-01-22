@@ -1,0 +1,99 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h1 class="mb-4">プロジェクトを編集</h1>
+
+      <%= form_with model: @project, local: true do |f| %>
+        <% if @project.errors.any? %>
+          <div class="alert alert-danger">
+            <h5><%= pluralize(@project.errors.count, "error") %> がありました:</h5>
+            <ul class="mb-0">
+              <% @project.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title mb-3">基本情報</h5>
+
+            <div class="mb-3">
+              <%= f.label :title, 'プロジェクトタイトル', class: 'form-label' %>
+              <%= f.text_field :title, class: 'form-control', placeholder: '例: ECサイト構築プロジェクト' %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :category, 'カテゴリ', class: 'form-label' %>
+              <%= f.select :category,
+                  options_for_select(Project::CATEGORIES.map { |c| [category_label(c), c] }, @project.category),
+                  { prompt: 'カテゴリを選択してください' },
+                  class: 'form-select' %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :purpose, 'プロジェクトの目的', class: 'form-label' %>
+              <%= f.text_area :purpose, class: 'form-control', rows: 4,
+                  placeholder: 'このプロジェクトを通じて何を実現したいか、何を作りたいかを説明してください' %>
+              <div class="form-text">プロジェクトの背景や目標を具体的に書きましょう</div>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :description, '詳細説明（任意）', class: 'form-label' %>
+              <%= f.text_area :description, class: 'form-control', rows: 6,
+                  placeholder: 'プロジェクトの詳細、技術スタック、開発の進め方などを説明してください' %>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title mb-3">募集条件</h5>
+
+            <div class="mb-3">
+              <%= f.label :people_needed, '募集人数', class: 'form-label' %>
+              <%= f.number_field :people_needed, class: 'form-control', min: 1 %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :estimated_period, '想定期間（任意）', class: 'form-label' %>
+              <%= f.text_field :estimated_period, class: 'form-control',
+                  placeholder: '例: 3ヶ月、半年、1年など' %>
+              <div class="form-text">プロジェクトの想定期間を入力してください</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">必要なスキル</label>
+              <div data-controller="skill-tags" data-skill-tags-selected-value='<%= @project.skills.map { |s| { id: s.id, name: s.name } }.to_json %>' class="position-relative">
+                <input
+                  type="text"
+                  class="form-control mb-2"
+                  placeholder="スキルを検索または新規作成..."
+                  data-skill-tags-target="input"
+                  data-action="input->skill-tags#search"
+                  autocomplete="off"
+                >
+
+                <div class="list-group d-none" data-skill-tags-target="suggestions" style="position: absolute; z-index: 1000; width: 100%; max-height: 300px; overflow-y: auto;"></div>
+
+                <div class="mt-2" data-skill-tags-target="tagContainer"></div>
+
+                <%= hidden_field_tag :skill_ids, @project.skill_ids.to_json, data: { skill_tags_target: 'hiddenInput' } %>
+              </div>
+              <div class="form-text">
+                スキルを入力して検索、または新しいスキルを作成できます。
+                複数のスキルを追加可能です。
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <%= f.submit 'プロジェクトを更新', class: 'btn btn-primary' %>
+          <%= link_to 'キャンセル', @project, class: 'btn btn-outline-secondary' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  project: one
+  skill: one
+  required_level: MyString
+  is_primary: false
+
+two:
+  project: two
+  skill: two
+  required_level: MyString
+  is_primary: false

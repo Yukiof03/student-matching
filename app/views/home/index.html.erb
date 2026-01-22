@@ -1,0 +1,246 @@
+<div class="row">
+  <div class="col-md-12">
+    <h1 class="mb-4">
+      ようこそ、<%= @user.name %>さん
+      <span class="badge bg-<%= project_owner_mode? ? 'primary' : 'success' %>">
+        <%= project_owner_mode? ? 'プロジェクトオーナー' : 'スキルホルダー' %>モード
+      </span>
+    </h1>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <% if project_owner_mode? %>
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">プロジェクトオーナーダッシュボード</h5>
+        </div>
+        <div class="card-body">
+          <p class="card-text">プロジェクトを作成し、必要なスキルを持った学生を見つけましょう。</p>
+          <div class="d-flex gap-2">
+            <%= link_to "プロジェクトを作成", new_project_path, class: "btn btn-primary" %>
+            <%= link_to "プロジェクト一覧", projects_path, class: "btn btn-outline-primary" %>
+            <%= link_to "スキルホルダーを検索", search_path, class: "btn btn-outline-primary" %>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">自分のプロジェクト</h6>
+        </div>
+        <div class="card-body">
+          <% my_projects = @user.projects.recent.limit(5) %>
+          <% if my_projects.any? %>
+            <ul class="list-group list-group-flush">
+              <% my_projects.each do |project| %>
+                <li class="list-group-item px-0">
+                  <%= link_to project.title, project, class: "text-decoration-none" %>
+                  <span class="badge bg-<%= project.draft? ? 'warning' : 'success' %> ms-2">
+                    <%= project.draft? ? '下書き' : '公開中' %>
+                  </span>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="text-muted mb-0">まだプロジェクトを作成していません。</p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Recommended Skill Holders -->
+      <% if @recommended_skill_holders.any? %>
+        <div class="card mb-4">
+          <div class="card-header">
+            <h6 class="mb-0">おすすめのスキルホルダー</h6>
+          </div>
+          <div class="card-body">
+            <div class="list-group list-group-flush">
+              <% @recommended_skill_holders.each do |user| %>
+                <div class="list-group-item px-0">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <strong><%= user.name %></strong>
+                      <div class="mt-1">
+                        <% user.skills.limit(3).each do |skill| %>
+                          <span class="badge bg-secondary me-1"><%= skill.name %></span>
+                        <% end %>
+                        <% if user.skills.count > 3 %>
+                          <span class="badge bg-light text-dark">+<%= user.skills.count - 3 %></span>
+                        <% end %>
+                      </div>
+                    </div>
+                    <small class="text-muted">
+                      <%= user.matching_skills_count %>個のスキルが一致
+                    </small>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+            <%= link_to "もっと見る", search_path, class: "btn btn-sm btn-outline-primary mt-3" %>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">自己紹介</h6>
+        </div>
+        <div class="card-body">
+          <% if @project_owner_profile.introduction.present? %>
+            <p><%= simple_format(@project_owner_profile.introduction) %></p>
+          <% else %>
+            <p class="text-muted">プロフィールを設定していません。</p>
+          <% end %>
+          <%= link_to "プロフィールを編集", edit_profiles_project_owner_profile_path, class: "btn btn-sm btn-outline-primary" %>
+        </div>
+      </div>
+    <% else %>
+      <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">スキルホルダーダッシュボード</h5>
+        </div>
+        <div class="card-body">
+          <p class="card-text">あなたのスキルを活かせるプロジェクトを探しましょう。</p>
+          <div class="d-flex gap-2">
+            <%= link_to "プロジェクトを探す", projects_path, class: "btn btn-success" %>
+            <%= link_to "プロジェクトを検索", search_path, class: "btn btn-outline-success" %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommended Projects -->
+      <% if @recommended_projects&.any? %>
+        <div class="card mb-4">
+          <div class="card-header">
+            <h6 class="mb-0">あなたにおすすめのプロジェクト</h6>
+          </div>
+          <div class="card-body">
+            <div class="list-group list-group-flush">
+              <% @recommended_projects.each do |project| %>
+                <div class="list-group-item px-0">
+                  <%= link_to project.title, project, class: "text-decoration-none fw-bold d-block mb-1" %>
+                  <small class="text-muted d-block mb-2">
+                    <%= truncate(project.purpose, length: 80) %>
+                  </small>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <% project.skills.limit(3).each do |skill| %>
+                        <span class="badge bg-secondary me-1"><%= skill.name %></span>
+                      <% end %>
+                      <% if project.skills.count > 3 %>
+                        <span class="badge bg-light text-dark">+<%= project.skills.count - 3 %></span>
+                      <% end %>
+                    </div>
+                    <small class="text-muted">
+                      <%= project.matching_skills_count %>個のスキルが一致
+                    </small>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+            <%= link_to "もっと見る", projects_path, class: "btn btn-sm btn-outline-success mt-3" %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Recent Projects -->
+      <% if @recent_projects&.any? %>
+        <div class="card mb-4">
+          <div class="card-header">
+            <h6 class="mb-0">新着プロジェクト</h6>
+          </div>
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              <% @recent_projects.each do |project| %>
+                <li class="list-group-item px-0">
+                  <%= link_to project.title, project, class: "text-decoration-none" %>
+                  <span class="badge bg-info ms-2"><%= category_label(project.category) %></span>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h6 class="mb-0">自己紹介</h6>
+        </div>
+        <div class="card-body">
+          <% if @skill_holder_profile.introduction.present? %>
+            <p><%= simple_format(@skill_holder_profile.introduction) %></p>
+          <% else %>
+            <p class="text-muted">プロフィールを設定していません。</p>
+          <% end %>
+          <%= link_to "プロフィールを編集", edit_profiles_skill_holder_profile_path, class: "btn btn-sm btn-outline-success" %>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">あなたのスキル</h6>
+          <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="collapse" data-bs-target="#skillEditSection" aria-expanded="false" aria-controls="skillEditSection">
+            編集
+          </button>
+        </div>
+        <div class="card-body">
+          <% if @user.skills.any? %>
+            <div id="skillsList" class="mb-3">
+              <% @user.skills.each do |skill| %>
+                <span class="badge bg-success me-1 mb-1">
+                  <%= skill.name %>
+                  <%= button_to "×", user_skill_path(@user.user_skills.find_by(skill: skill)), method: :delete, class: "btn-close btn-close-white ms-1", style: "font-size: 0.6rem; padding: 0; vertical-align: middle;", form: { style: "display: inline;", data: { turbo_confirm: "このスキルを削除しますか？" } } %>
+                </span>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="text-muted">スキルを追加していません。</p>
+          <% end %>
+
+          <div class="collapse" id="skillEditSection">
+            <hr>
+            <h6 class="mb-3">スキルを追加</h6>
+            <%= form_with url: user_skills_path, method: :post, local: true, class: "mb-3", scope: :user_skill, data: { controller: "skill-search" } do |f| %>
+              <div class="mb-2">
+                <input type="text"
+                       class="form-control"
+                       placeholder="スキル名を入力..."
+                       data-skill-search-target="input"
+                       data-action="input->skill-search#search"
+                       autocomplete="off">
+              </div>
+
+              <div data-skill-search-target="suggestions" class="list-group mb-3" style="max-height: 200px; overflow-y: auto; display: none;"></div>
+
+              <%= f.hidden_field :skill_id, data: { skill_search_target: "skillId" } %>
+              <%= f.submit "スキルを追加", class: "btn btn-sm btn-success", data: { skill_search_target: "submitBtn" }, disabled: true %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0">SNSリンク</h6>
+      </div>
+      <div class="card-body">
+        <% if @user.sns_links.any? %>
+          <% @user.sns_links.each do |link| %>
+            <div class="mb-2">
+              <span class="badge bg-secondary"><%= link.platform %></span>
+              <%= link_to link.url, link.url, target: "_blank", class: "ms-2" %>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="text-muted">SNSリンクを登録していません。</p>
+        <% end %>
+        <%= link_to "SNSを編集", sns_links_path, class: "btn btn-sm btn-outline-primary mt-2" %>
+      </div>
+    </div>
+  </div>
+</div>

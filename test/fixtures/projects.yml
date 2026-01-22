@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  owner: one
+  title: MyString
+  purpose: MyText
+  description: MyText
+  people_needed: 1
+  estimated_period: MyString
+  category: MyString
+  status: MyString
+  published_at: 2026-01-09 12:14:43
+
+two:
+  owner: two
+  title: MyString
+  purpose: MyText
+  description: MyText
+  people_needed: 1
+  estimated_period: MyString
+  category: MyString
+  status: MyString
+  published_at: 2026-01-09 12:14:43

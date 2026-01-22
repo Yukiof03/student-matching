@@ -1,0 +1,80 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h3 class="mb-0">マッチング成立！</h3>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-success">
+            <strong><%= @match.matched_user.name %>さん</strong>とのマッチングが成立しました！
+            <br>
+            <small class="text-muted">
+              <%= @match.matched_at.strftime('%Y年%m月%d日 %H:%M') %>
+            </small>
+          </div>
+
+          <div class="mb-4">
+            <h5>プロジェクト</h5>
+            <div class="card">
+              <div class="card-body">
+                <h6 class="card-title">
+                  <%= link_to @match.project.title, project_path(@match.project) %>
+                </h6>
+                <p class="card-text text-muted">
+                  <%= truncate(@match.project.description, length: 150) %>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <h5>マッチング相手の情報</h5>
+            <div class="card">
+              <div class="card-body">
+                <h6><%= @match.matched_user.name %>さん</h6>
+                <p class="text-muted"><%= @match.matched_user.email %></p>
+
+                <% if @match.matched_user.skill_holder_profile&.introduction.present? %>
+                  <p><%= @match.matched_user.skill_holder_profile.introduction %></p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <h5>連絡先情報</h5>
+            <div class="alert alert-info">
+              マッチングが成立したため、<%= @match.matched_user.name %>さんのSNS情報が公開されました。
+              以下のリンクから連絡を取ることができます。
+            </div>
+
+            <% if @revealed_sns_links.any? %>
+              <div class="list-group">
+                <% @revealed_sns_links.each do |sns_link| %>
+                  <%= link_to sns_link.url, target: '_blank', rel: 'noopener noreferrer', class: 'list-group-item list-group-item-action d-flex justify-content-between align-items-center' do %>
+                    <div>
+                      <strong><%= sns_link.platform.titleize %></strong>
+                      <br>
+                      <small class="text-muted"><%= sns_link.url %></small>
+                    </div>
+                    <span class="badge bg-primary rounded-pill">開く</span>
+                  <% end %>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="alert alert-warning">
+                相手がまだSNS情報を登録していません
+              </div>
+            <% end %>
+          </div>
+
+          <div class="d-flex gap-2">
+            <%= link_to '← マッチング一覧へ戻る', matches_path, class: 'btn btn-outline-secondary' %>
+            <%= link_to 'プロジェクトを見る', project_path(@match.project), class: 'btn btn-primary' %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

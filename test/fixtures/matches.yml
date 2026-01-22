@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  project: one
+  status: MyString
+  matched_at: 2026-01-09 13:20:37
+
+two:
+  project: two
+  status: MyString
+  matched_at: 2026-01-09 13:20:37

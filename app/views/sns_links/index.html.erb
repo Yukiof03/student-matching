@@ -1,0 +1,88 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h1 class="mb-4">SNSリンク管理</h1>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">登録済みSNSリンク</h5>
+        </div>
+        <div class="card-body">
+          <% if @sns_links.any? %>
+            <div class="list-group">
+              <% @sns_links.each do |sns_link| %>
+                <div class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong><%= sns_link.platform %></strong>
+                      <br>
+                      <small class="text-muted"><%= sns_link.url %></small>
+                      <br>
+                      <% if sns_link.visible_after_match %>
+                        <span class="badge bg-success">マッチ後に公開</span>
+                      <% else %>
+                        <span class="badge bg-secondary">常に非公開</span>
+                      <% end %>
+                    </div>
+                    <%= button_to '削除', sns_link_path(sns_link), method: :delete, class: 'btn btn-sm btn-danger', data: { confirm: '本当に削除しますか？' } %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="text-muted">まだSNSリンクが登録されていません。</p>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">新しいSNSリンクを追加</h5>
+        </div>
+        <div class="card-body">
+          <%= form_with model: @sns_link, url: sns_links_path, method: :post, local: true do |f| %>
+            <div class="mb-3">
+              <%= f.label :platform, 'プラットフォーム', class: 'form-label' %>
+              <%= f.select :platform,
+                  options_for_select([
+                    ['Twitter/X', 'Twitter'],
+                    ['Instagram', 'Instagram'],
+                    ['Facebook', 'Facebook'],
+                    ['Discord', 'Discord'],
+                    ['Slack', 'Slack'],
+                    ['LINE', 'LINE'],
+                    ['Email', 'Email'],
+                    ['その他', 'Other']
+                  ]),
+                  { prompt: '選択してください' },
+                  { class: 'form-select' } %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :url, 'URL / ID', class: 'form-label' %>
+              <%= f.text_field :url, class: 'form-control', placeholder: 'https://twitter.com/username または LINE ID など' %>
+              <small class="form-text text-muted">
+                URLまたはユーザーID、アカウント名を入力してください
+              </small>
+            </div>
+
+            <div class="mb-3">
+              <div class="form-check">
+                <%= f.check_box :visible_after_match, class: 'form-check-input', checked: true %>
+                <%= f.label :visible_after_match, 'マッチング成立後に公開する', class: 'form-check-label' %>
+              </div>
+              <small class="form-text text-muted">
+                チェックすると、マッチングが成立した相手にのみこのSNSリンクが表示されます
+              </small>
+            </div>
+
+            <div class="d-flex gap-2">
+              <%= f.submit '追加', class: 'btn btn-primary' %>
+              <%= link_to 'ホームに戻る', root_path, class: 'btn btn-outline-secondary' %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

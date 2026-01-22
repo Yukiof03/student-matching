@@ -1,0 +1,225 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-8">
+      <!-- Project header -->
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h1><%= @project.title %></h1>
+          <span class="badge bg-info"><%= category_label(@project.category) %></span>
+          <% if @project.draft? %>
+            <span class="badge bg-warning text-dark">下書き</span>
+          <% elsif @project.active? %>
+            <span class="badge bg-success">募集中</span>
+          <% end %>
+        </div>
+        <% if current_user == @project.owner %>
+          <div class="btn-group">
+            <%= link_to '編集', edit_project_path(@project), class: 'btn btn-sm btn-outline-secondary' %>
+            <%= button_to '削除', @project, method: :delete, data: { turbo_confirm: '本当に削除しますか?' }, class: 'btn btn-sm btn-outline-danger' %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Project owner info -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h6 class="text-muted mb-2">プロジェクトオーナー</h6>
+          <div class="d-flex align-items-center">
+            <div class="ms-2">
+              <strong><%= @project.owner.name %></strong>
+              <p class="mb-0 small text-muted">
+                <%= @project.owner.project_owner_profile.introduction&.truncate(100) || '自己紹介未設定' %>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project details -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">プロジェクトの目的</h5>
+          <p class="card-text"><%= simple_format(@project.purpose) %></p>
+
+          <% if @project.description.present? %>
+            <hr>
+            <h5 class="card-title">詳細説明</h5>
+            <p class="card-text"><%= simple_format(@project.description) %></p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Received Applications (for project owner) -->
+      <% if @project.owner == current_user %>
+        <% applications = @project.applications.includes(:applicant).order(created_at: :desc) %>
+        <% if applications.any? %>
+          <div class="card mb-4">
+            <div class="card-header bg-primary">
+              <h5 class="mb-0">応募者一覧 (<%= applications.count %>件)</h5>
+            </div>
+            <div class="card-body">
+              <% applications.each do |application| %>
+                <div class="card mb-3">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                      <div>
+                        <h6 class="mb-1"><%= application.applicant.name %></h6>
+                        <small class="text-muted">
+                          <i class="bi bi-clock me-1"></i>
+                          <%= time_ago_in_words(application.created_at) %>前に応募
+                        </small>
+                      </div>
+                      <% if application.status == 'pending' %>
+                        <span class="badge bg-warning">承認待ち</span>
+                      <% elsif application.status == 'accepted' %>
+                        <span class="badge bg-success">承認済み</span>
+                      <% elsif application.status == 'rejected' %>
+                        <span class="badge bg-secondary">却下済み</span>
+                      <% end %>
+                    </div>
+
+                    <!-- Applicant Skills -->
+                    <div class="mb-3">
+                      <small class="text-muted d-block mb-1">スキル:</small>
+                      <% application.applicant.skills.limit(10).each do |skill| %>
+                        <span class="badge bg-secondary me-1 mb-1"><%= skill.name %></span>
+                      <% end %>
+                    </div>
+
+                    <!-- Application Message -->
+                    <% if application.message.present? %>
+                      <div class="mb-3">
+                        <small class="text-muted d-block mb-1">応募メッセージ:</small>
+                        <p class="mb-0"><%= simple_format(application.message) %></p>
+                      </div>
+                    <% end %>
+
+                    <!-- Applicant Introduction -->
+                    <% if application.applicant.skill_holder_profile.introduction.present? %>
+                      <div class="mb-3">
+                        <small class="text-muted d-block mb-1">自己紹介:</small>
+                        <p class="mb-0 text-muted small">
+                          <%= truncate(application.applicant.skill_holder_profile.introduction, length: 200) %>
+                        </p>
+                      </div>
+                    <% end %>
+
+                    <!-- Action Buttons (only for pending applications) -->
+                    <% if application.status == 'pending' %>
+                      <div class="d-flex gap-2">
+                        <%= button_to '承認する', accept_application_path(application), method: :post, class: 'btn btn-sm btn-success', form: { data: { turbo_confirm: "#{application.applicant.name}さんの応募を承認しますか？" } } %>
+                        <%= button_to '却下する', reject_application_path(application), method: :post, class: 'btn btn-sm btn-outline-secondary', form: { data: { turbo_confirm: "#{application.applicant.name}さんの応募を却下しますか？" } } %>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+
+      <!-- Actions -->
+      <% if current_user != @project.owner %>
+        <% if @project.draft? %>
+          <div class="alert alert-warning">
+            このプロジェクトはまだ公開されていません。
+          </div>
+        <% elsif skill_holder_mode? %>
+          <% already_applied = Application.exists?(project: @project, applicant: current_user) %>
+          <% already_matched = Match.exists?(project: @project, matched_user: current_user) %>
+
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">このプロジェクトに興味がありますか?</h5>
+
+              <% if already_matched %>
+                <div class="alert alert-success">
+                  このプロジェクトとマッチング済みです！
+                </div>
+                <%= link_to 'マッチング詳細を見る', matches_path, class: 'btn btn-primary' %>
+              <% elsif already_applied %>
+                <div class="alert alert-info">
+                  既にこのプロジェクトに応募済みです。
+                </div>
+              <% else %>
+                <%= form_with url: project_applications_path(@project), method: :post, local: true do |f| %>
+                  <div class="mb-3">
+                    <%= f.label :message, '応募メッセージ', class: 'form-label' %>
+                    <%= f.text_area :message, rows: 4, class: 'form-control', placeholder: 'プロジェクトへの意気込みや、あなたのスキルをアピールしてください' %>
+                  </div>
+                  <%= f.submit '応募する', class: 'btn btn-primary' %>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        <% else %>
+          <div class="alert alert-info">
+            このプロジェクトに応募するには、スキルホルダーモードに切り替えてください。
+          </div>
+        <% end %>
+      <% elsif @project.draft? %>
+        <div class="card">
+          <div class="card-body text-center">
+            <h5 class="card-title">プロジェクトを公開しますか?</h5>
+            <p class="text-muted">公開すると、スキルホルダーがこのプロジェクトに応募できるようになります。</p>
+            <%= button_to 'プロジェクトを公開', publish_project_path(@project), method: :post, class: 'btn btn-success' %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Required skills -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">必要なスキル</h5>
+          <% if @required_skills.any? %>
+            <div class="d-flex flex-wrap gap-2">
+              <% @required_skills.each do |skill| %>
+                <span class="badge bg-primary"><%= skill.name %></span>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="text-muted mb-0">スキル未設定</p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Project info -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">募集情報</h5>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+              <i class="bi bi-people-fill me-2"></i>
+              <strong>募集人数:</strong> <%= @project.people_needed %>人
+            </li>
+            <% if @project.estimated_period.present? %>
+              <li class="mb-2">
+                <i class="bi bi-calendar-event me-2"></i>
+                <strong>想定期間:</strong> <%= @project.estimated_period %>
+              </li>
+            <% end %>
+            <li class="mb-2">
+              <i class="bi bi-clock-history me-2"></i>
+              <strong>投稿日:</strong> <%= l(@project.created_at, format: :long) %>
+            </li>
+            <% if @project.published_at %>
+              <li>
+                <i class="bi bi-check-circle me-2"></i>
+                <strong>公開日:</strong> <%= l(@project.published_at, format: :long) %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Back to list -->
+      <div class="d-grid">
+        <%= link_to 'プロジェクト一覧に戻る', projects_path, class: 'btn btn-outline-secondary' %>
+      </div>
+    </div>
+  </div>
+</div>

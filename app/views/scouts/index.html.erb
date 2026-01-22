@@ -1,0 +1,114 @@
+<div class="container mt-4">
+  <h1 class="mb-4">スカウト管理</h1>
+
+  <!-- Nav tabs for received/sent scouts -->
+  <ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="received-tab" data-bs-toggle="tab" data-bs-target="#received" type="button" role="tab">
+        受信したスカウト
+        <% if @received_scouts.pending.any? %>
+          <span class="badge bg-danger"><%= @received_scouts.pending.count %></span>
+        <% end %>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="sent-tab" data-bs-toggle="tab" data-bs-target="#sent" type="button" role="tab">
+        送信したスカウト
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab content -->
+  <div class="tab-content">
+    <!-- Received Scouts Tab -->
+    <div class="tab-pane fade show active" id="received" role="tabpanel">
+      <% if @received_scouts.any? %>
+        <% @received_scouts.each do |scout| %>
+          <div class="card mb-3">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h5 class="card-title">
+                    <%= link_to scout.project.title, project_path(scout.project) %>
+                  </h5>
+                  <p class="card-text text-muted">
+                    <small>
+                      <%= scout.scout_user.name %>さんから
+                      <span class="mx-1">•</span>
+                      <%= scout.created_at.strftime('%Y/%m/%d %H:%M') %>
+                    </small>
+                  </p>
+                  <% if scout.message.present? %>
+                    <p class="card-text"><%= scout.message %></p>
+                  <% end %>
+                </div>
+                <div>
+                  <% if scout.status == 'pending' %>
+                    <span class="badge bg-warning text-dark">未承認</span>
+                  <% elsif scout.status == 'accepted' %>
+                    <span class="badge bg-success">承認済み</span>
+                  <% elsif scout.status == 'rejected' %>
+                    <span class="badge bg-secondary">辞退済み</span>
+                  <% end %>
+                </div>
+              </div>
+
+              <% if scout.status == 'pending' %>
+                <div class="mt-3">
+                  <%= button_to '承認する', accept_scout_path(scout), method: :post, class: 'btn btn-success me-2' %>
+                  <%= button_to '辞退する', reject_scout_path(scout), method: :post, class: 'btn btn-outline-secondary', data: { confirm: '本当に辞退しますか?' } %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="alert alert-info">
+          受信したスカウトはありません
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Sent Scouts Tab -->
+    <div class="tab-pane fade" id="sent" role="tabpanel">
+      <% if @sent_scouts.any? %>
+        <% @sent_scouts.each do |scout| %>
+          <div class="card mb-3">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h5 class="card-title">
+                    <%= link_to scout.project.title, project_path(scout.project) %>
+                  </h5>
+                  <p class="card-text text-muted">
+                    <small>
+                      <%= scout.scouted_user.name %>さんへ
+                      <span class="mx-1">•</span>
+                      <%= scout.created_at.strftime('%Y/%m/%d %H:%M') %>
+                    </small>
+                  </p>
+                  <% if scout.message.present? %>
+                    <p class="card-text"><%= scout.message %></p>
+                  <% end %>
+                </div>
+                <div>
+                  <% if scout.status == 'pending' %>
+                    <span class="badge bg-warning text-dark">未承認</span>
+                  <% elsif scout.status == 'accepted' %>
+                    <span class="badge bg-success">承認済み</span>
+                  <% elsif scout.status == 'rejected' %>
+                    <span class="badge bg-secondary">辞退された</span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="alert alert-info">
+          送信したスカウトはありません
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,210 @@
+<div class="container mt-4">
+  <h1 class="mb-4">
+    <% if project_owner_mode? %>
+      スキルホルダーを検索
+    <% else %>
+      プロジェクトを検索
+    <% end %>
+  </h1>
+
+  <!-- Search Form -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: search_path, method: :get, local: true, class: "row g-3" do |f| %>
+        <!-- Keyword Search -->
+        <div class="col-md-6">
+          <%= f.label :q, 'キーワード', class: 'form-label' %>
+          <%= f.text_field :q, value: @query, class: 'form-control', placeholder: project_owner_mode? ? '名前、自己紹介、実績など' : 'プロジェクト名、目的、説明など' %>
+        </div>
+
+        <!-- Category Filter (only for project search) -->
+        <% if skill_holder_mode? %>
+          <div class="col-md-3">
+            <%= f.label :category, 'カテゴリ', class: 'form-label' %>
+            <%= f.select :category,
+                options_for_select([['すべて', '']] + Project::CATEGORIES.map { |c| [category_label(c), c] }, @category),
+                {},
+                class: 'form-select' %>
+          </div>
+        <% end %>
+
+        <!-- Skill Filter -->
+        <div class="<%= skill_holder_mode? ? 'col-md-3' : 'col-md-6' %>">
+          <%= f.label :skill_ids, 'スキルで絞り込み', class: 'form-label' %>
+          <div data-controller="skill-tags" data-skill-tags-selected-value='<%= @selected_skills.map { |s| { id: s.id, name: s.name } }.to_json %>' class="position-relative">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="スキルを選択..."
+              data-skill-tags-target="input"
+              data-action="input->skill-tags#search"
+              autocomplete="off"
+            >
+
+            <div class="list-group d-none" data-skill-tags-target="suggestions" style="position: absolute; z-index: 1000; width: 100%; max-height: 300px; overflow-y: auto;"></div>
+
+            <div class="mt-2" data-skill-tags-target="tagContainer"></div>
+
+            <%= f.hidden_field :skill_ids, value: @skill_ids.join(','), data: { skill_tags_target: 'hiddenInput' }, id: 'search_skill_ids' %>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <%= f.submit '検索', class: 'btn btn-primary me-2' %>
+          <%= link_to 'リセット', search_path, class: 'btn btn-outline-secondary' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Search Results -->
+  <% if project_owner_mode? %>
+    <!-- Skill Holder Results -->
+    <% if @users && @users.any? %>
+      <p class="text-muted mb-3"><%= @users.total_count %>件のスキルホルダーが見つかりました</p>
+
+      <div class="row">
+        <% @users.each do |user| %>
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+              <div class="card-body">
+                <h5 class="card-title"><%= user.name %></h5>
+
+                <!-- Skills -->
+                <div class="mb-3">
+                  <small class="text-muted d-block mb-1">スキル:</small>
+                  <% user.skills.limit(5).each do |skill| %>
+                    <span class="badge bg-secondary me-1 mb-1"><%= skill.name %></span>
+                  <% end %>
+                  <% if user.skills.count > 5 %>
+                    <span class="badge bg-light text-dark">+<%= user.skills.count - 5 %></span>
+                  <% end %>
+                </div>
+
+                <!-- Introduction -->
+                <% if user.skill_holder_profile.introduction.present? %>
+                  <p class="card-text text-muted small">
+                    <%= truncate(user.skill_holder_profile.introduction, length: 100) %>
+                  </p>
+                <% end %>
+
+                <!-- Availability -->
+                <% if user.skill_holder_profile.availability.present? %>
+                  <small class="text-muted">
+                    <i class="bi bi-clock me-1"></i>
+                    <%= user.skill_holder_profile.availability %>
+                  </small>
+                <% end %>
+              </div>
+              <div class="card-footer bg-white">
+                <!-- Scout button with modal -->
+                <button type="button" class="btn btn-sm btn-primary w-100" data-bs-toggle="modal" data-bs-target="#scoutModal<%= user.id %>">
+                  スカウトする
+                </button>
+
+                <!-- Scout Modal -->
+                <div class="modal fade" id="scoutModal<%= user.id %>" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title"><%= user.name %>さんをスカウト</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <%= form_with url: '', method: :post, local: true, html: { id: "scoutForm#{user.id}" } do |f| %>
+                        <div class="modal-body">
+                          <div class="mb-3">
+                            <%= label_tag :project_select, 'プロジェクトを選択', class: 'form-label' %>
+                            <%= select_tag :project_id,
+                                options_from_collection_for_select(current_user.projects.active, :id, :title),
+                                class: 'form-select',
+                                required: true,
+                                onchange: "document.getElementById('scoutForm#{user.id}').action = '/projects/' + this.value + '/scouts?user_id=#{user.id}'" %>
+                          </div>
+                          <div class="mb-3">
+                            <%= f.label :message, 'スカウトメッセージ', class: 'form-label' %>
+                            <%= f.text_area :message, rows: 4, class: 'form-control', placeholder: 'プロジェクトの魅力や、なぜこの人をスカウトするのかを伝えましょう' %>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                          <%= f.submit 'スカウトする', class: 'btn btn-primary' %>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Pagination -->
+      <div class="d-flex justify-content-center mt-4">
+        <%= paginate @users %>
+      </div>
+    <% elsif @users %>
+      <div class="alert alert-info">
+        検索条件に一致するスキルホルダーが見つかりませんでした。
+      </div>
+    <% end %>
+  <% else %>
+    <!-- Project Results -->
+    <% if @projects && @projects.any? %>
+      <p class="text-muted mb-3"><%= @projects.total_count %>件のプロジェクトが見つかりました</p>
+
+      <div class="row">
+        <% @projects.each do |project| %>
+          <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h5 class="card-title"><%= link_to project.title, project, class: 'text-decoration-none' %></h5>
+                  <span class="badge bg-info"><%= category_label(project.category) %></span>
+                </div>
+
+                <p class="card-text text-muted small mb-3">
+                  <%= truncate(project.purpose, length: 100) %>
+                </p>
+
+                <!-- Required skills -->
+                <div class="mb-3">
+                  <small class="text-muted d-block mb-1">必要なスキル:</small>
+                  <% project.skills.limit(5).each do |skill| %>
+                    <span class="badge bg-secondary me-1"><%= skill.name %></span>
+                  <% end %>
+                  <% if project.skills.count > 5 %>
+                    <span class="badge bg-light text-dark">+<%= project.skills.count - 5 %></span>
+                  <% end %>
+                </div>
+
+                <!-- Project info -->
+                <div class="d-flex justify-content-between align-items-center">
+                  <small class="text-muted">
+                    <i class="bi bi-people-fill me-1"></i>
+                    <%= project.people_needed %>人募集
+                  </small>
+                  <small class="text-muted">
+                    by <%= project.owner.name %>
+                  </small>
+                </div>
+              </div>
+              <div class="card-footer bg-white">
+                <%= link_to '詳細を見る', project, class: 'btn btn-sm btn-outline-primary w-100' %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Pagination -->
+      <div class="d-flex justify-content-center mt-4">
+        <%= paginate @projects %>
+      </div>
+    <% elsif @projects %>
+      <div class="alert alert-info">
+        検索条件に一致するプロジェクトが見つかりませんでした。
+      </div>
+    <% end %>
+  <% end %>
+</div>

@@ -1,0 +1,33 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h1 class="mb-4">プロジェクトオーナープロフィール編集</h1>
+
+      <%= form_with model: @profile, url: profiles_project_owner_profile_path, method: :patch, local: true do |f| %>
+        <div class="card">
+          <div class="card-body">
+            <div class="mb-3">
+              <%= f.label :introduction, '自己紹介', class: 'form-label' %>
+              <%= f.text_area :introduction, rows: 5, class: 'form-control', placeholder: 'あなたの紹介やプロジェクトへの想いを入力してください' %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :goals, '目標', class: 'form-label' %>
+              <%= f.text_area :goals, rows: 3, class: 'form-control', placeholder: 'プロジェクトを通じて達成したい目標を入力してください' %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :past_projects, '過去のプロジェクト', class: 'form-label' %>
+              <%= f.text_area :past_projects, rows: 4, class: 'form-control', placeholder: 'これまでに手がけたプロジェクトや実績を入力してください' %>
+            </div>
+
+            <div class="d-flex gap-2">
+              <%= f.submit '保存', class: 'btn btn-primary' %>
+              <%= link_to 'キャンセル', root_path, class: 'btn btn-outline-secondary' %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

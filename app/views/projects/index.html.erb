@@ -1,0 +1,76 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>プロジェクト一覧</h1>
+    <% if project_owner_mode? %>
+      <%= link_to 'プロジェクトを作成', new_project_path, class: 'btn btn-primary' %>
+    <% end %>
+  </div>
+
+  <!-- Category filter -->
+  <div class="mb-4">
+    <div class="btn-group" role="group" aria-label="カテゴリフィルター">
+      <%= link_to 'すべて', projects_path, class: "btn btn-outline-secondary #{'active' if params[:category].blank?}" %>
+      <% Project::CATEGORIES.each do |category| %>
+        <%= link_to category_label(category), projects_path(category: category), class: "btn btn-outline-secondary #{'active' if params[:category] == category}" %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Projects grid -->
+  <% if @projects.any? %>
+    <div class="row">
+      <% @projects.each do |project| %>
+        <div class="col-md-6 col-lg-4 mb-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 class="card-title"><%= link_to project.title, project, class: 'text-decoration-none' %></h5>
+                <span class="badge bg-info"><%= category_label(project.category) %></span>
+              </div>
+              <p class="card-text text-muted small mb-3">
+                <%= truncate(project.purpose, length: 100) %>
+              </p>
+
+              <!-- Required skills -->
+              <div class="mb-3">
+                <small class="text-muted d-block mb-1">必要なスキル:</small>
+                <% project.skills.limit(5).each do |skill| %>
+                  <span class="badge bg-secondary me-1"><%= skill.name %></span>
+                <% end %>
+                <% if project.skills.count > 5 %>
+                  <span class="badge bg-light text-dark">+<%= project.skills.count - 5 %></span>
+                <% end %>
+              </div>
+
+              <!-- Project info -->
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                  <i class="bi bi-people-fill me-1"></i>
+                  <%= project.people_needed %>人募集
+                </small>
+                <small class="text-muted">
+                  by <%= project.owner.name %>
+                </small>
+              </div>
+            </div>
+            <div class="card-footer bg-white">
+              <%= link_to '詳細を見る', project, class: 'btn btn-sm btn-outline-primary w-100' %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-center mt-4">
+      <%= paginate @projects %>
+    </div>
+  <% else %>
+    <div class="alert alert-info">
+      まだプロジェクトが投稿されていません。
+      <% if project_owner_mode? %>
+        <%= link_to '最初のプロジェクトを作成', new_project_path, class: 'alert-link' %>してみましょう！
+      <% end %>
+    </div>
+  <% end %>
+</div>
