@@ -3,10 +3,10 @@ class Project < ApplicationRecord
   has_many :project_skills, dependent: :destroy
   has_many :skills, through: :project_skills
 
-  # Matching associations
+  # Matching associations - matches must be deleted before scouts/applications
+  has_many :matches, dependent: :destroy
   has_many :scouts, dependent: :destroy
   has_many :applications, dependent: :destroy
-  has_many :matches, dependent: :destroy
 
   CATEGORIES = %w[web mobile ai design video music business education other].freeze
   STATUSES = %w[draft active paused closed].freeze
