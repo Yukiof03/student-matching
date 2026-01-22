@@ -34,36 +34,43 @@
           </div>
 
           <!-- Scout Form -->
-          <%= form_with url: '', method: :post, data: { turbo: false }, html: { id: 'scoutForm' } do |f| %>
-            <div class="mb-3">
-              <%= label_tag :project_id, 'スカウトするプロジェクトを選択', class: 'form-label' %>
-              <%= select_tag :project_id,
-                  options_from_collection_for_select(@projects, :id, :title),
-                  {
-                    prompt: 'プロジェクトを選択してください',
-                    class: 'form-select',
-                    required: true,
-                    onchange: "document.getElementById('scoutForm').action = '/projects/' + this.value + '/scouts?user_id=#{@user.id}'"
-                  } %>
-              <small class="form-text text-muted">
-                このユーザーをどのプロジェクトにスカウトしますか？
-              </small>
-            </div>
+          <% if @projects.any? %>
+            <% first_project = @projects.first %>
+            <%= form_with url: project_scouts_path(first_project, user_id: @user.id), method: :post, data: { turbo: false }, html: { id: 'scoutForm' } do |f| %>
+              <div class="mb-3">
+                <%= label_tag :project_id, 'スカウトするプロジェクトを選択', class: 'form-label' %>
+                <%= select_tag :project_id,
+                    options_from_collection_for_select(@projects, :id, :title, first_project.id),
+                    {
+                      class: 'form-select',
+                      required: true,
+                      onchange: "document.getElementById('scoutForm').action = '/projects/' + this.value + '/scouts?user_id=#{@user.id}'"
+                    } %>
+                <small class="form-text text-muted">
+                  このユーザーをどのプロジェクトにスカウトしますか？
+                </small>
+              </div>
 
-            <div class="mb-3">
-              <%= f.label :message, 'スカウトメッセージ', class: 'form-label' %>
-              <%= f.text_area :message, rows: 6, class: 'form-control',
-                  placeholder: 'プロジェクトの魅力や、なぜこの人をスカウトするのかを伝えましょう。
+              <div class="mb-3">
+                <%= f.label :message, 'スカウトメッセージ', class: 'form-label' %>
+                <%= f.text_area :message, rows: 6, class: 'form-control',
+                    placeholder: 'プロジェクトの魅力や、なぜこの人をスカウトするのかを伝えましょう。
 
 例:
 - プロジェクトのビジョンや目標
 - この人のスキルがなぜ必要か
 - プロジェクトに参加するメリット' %>
-            </div>
+              </div>
 
-            <div class="d-flex gap-2">
-              <%= f.submit 'スカウトを送信', class: 'btn btn-primary', data: { disable_with: '送信中...' } %>
-              <%= link_to 'キャンセル', search_path, class: 'btn btn-outline-secondary' %>
+              <div class="d-flex gap-2">
+                <%= f.submit 'スカウトを送信', class: 'btn btn-primary', data: { disable_with: '送信中...' } %>
+                <%= link_to 'キャンセル', search_path, class: 'btn btn-outline-secondary' %>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="alert alert-warning">
+              公開中のプロジェクトがありません。
+              <%= link_to 'プロジェクトを作成', new_project_path, class: 'alert-link' %>してください。
             </div>
           <% end %>
         </div>
