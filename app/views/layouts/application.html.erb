@@ -125,10 +125,76 @@
                 </p>
               </div>
 
+              <!-- Partner Profile -->
+              <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                  <h6 class="mb-0">
+                    <i class="bi bi-person-circle me-2"></i>
+                    <%= match_sns_data[:partner].name %>さんのプロフィール
+                  </h6>
+                </div>
+                <div class="card-body">
+                  <% if project_owner_mode? %>
+                    <!-- スキルホルダーのプロフィール表示（プロジェクトオーナーが見る場合） -->
+                    <% if match_sns_data[:partner].skill_holder_profile.present? %>
+                      <% profile = match_sns_data[:partner].skill_holder_profile %>
+                      <% if profile.introduction.present? %>
+                        <div class="mb-3">
+                          <strong class="d-block mb-1">自己紹介:</strong>
+                          <p class="mb-0"><%= simple_format(profile.introduction) %></p>
+                        </div>
+                      <% end %>
+                      <% if match_sns_data[:partner].skills.any? %>
+                        <div class="mb-3">
+                          <strong class="d-block mb-1">スキル:</strong>
+                          <% match_sns_data[:partner].skills.limit(15).each do |skill| %>
+                            <span class="badge bg-secondary me-1 mb-1"><%= skill.name %></span>
+                          <% end %>
+                        </div>
+                      <% end %>
+                      <% if profile.past_work.present? %>
+                        <div class="mb-3">
+                          <strong class="d-block mb-1">過去の実績:</strong>
+                          <p class="mb-0 text-muted small"><%= truncate(profile.past_work, length: 200) %></p>
+                        </div>
+                      <% end %>
+                    <% else %>
+                      <p class="text-muted mb-0">プロフィールが未設定です。</p>
+                    <% end %>
+                  <% else %>
+                    <!-- プロジェクトオーナーのプロフィール表示（スキルホルダーが見る場合） -->
+                    <% if match_sns_data[:partner].project_owner_profile.present? %>
+                      <% profile = match_sns_data[:partner].project_owner_profile %>
+                      <% if profile.introduction.present? %>
+                        <div class="mb-3">
+                          <strong class="d-block mb-1">自己紹介:</strong>
+                          <p class="mb-0"><%= simple_format(profile.introduction) %></p>
+                        </div>
+                      <% end %>
+                      <% if profile.goals.present? %>
+                        <div class="mb-3">
+                          <strong class="d-block mb-1">目標:</strong>
+                          <p class="mb-0"><%= simple_format(profile.goals) %></p>
+                        </div>
+                      <% end %>
+                      <% if profile.past_projects.present? %>
+                        <div class="mb-3">
+                          <strong class="d-block mb-1">過去のプロジェクト:</strong>
+                          <p class="mb-0 text-muted small"><%= truncate(profile.past_projects, length: 200) %></p>
+                        </div>
+                      <% end %>
+                    <% else %>
+                      <p class="text-muted mb-0">プロフィールが未設定です。</p>
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+
+              <!-- Partner SNS Links -->
               <div class="card">
                 <div class="card-header bg-primary">
                   <h6 class="mb-0">
-                    <i class="bi bi-person-circle me-2"></i>
+                    <i class="bi bi-share me-2"></i>
                     <%= match_sns_data[:partner].name %>さんの連絡先
                   </h6>
                 </div>

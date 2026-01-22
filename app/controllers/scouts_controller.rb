@@ -53,6 +53,7 @@ class ScoutsController < ApplicationController
     end
 
     match_created = false
+    match = nil
     ActiveRecord::Base.transaction do
       @scout.update!(status: 'accepted')
       match = @scout.check_and_create_match
@@ -60,16 +61,36 @@ class ScoutsController < ApplicationController
     end
 
     if match_created
-      # マッチング成立時は、SNS情報表示用のフラッグをセッションに保存
+      # スキルホルダー側: プロジェクトオーナーのSNS情報を即座に表示
       session[:show_match_sns] = {
-        partner_id: @scout.scout_user.id,
-        project_id: @scout.project.id
+        partner_id: @scout.scout_user.id,  # プロジェクトオーナー
+        project_id: @scout.project.id,
+        match_id: match.id
       }
-      redirect_to root_path, notice: 'マッチングが成立しました！'
+
+      # プロジェクトオーナー側にも通知を保存（次回ログイン時に表示）
+      # プロジェクトオーナーのMatchレコードを探す
+      owner_match = Match.find_by(
+        project_id: @scout.project.id,
+        matched_user_id: @scout.scout_user.id
+      )
+
+      if owner_match
+        store_match_notification_for_user(
+          @scout.scout_user.id,  # 通知を受け取るユーザー（プロジェクトオーナー）
+          current_user.id,  # パートナー（スキルホルダー）
+          @scout.project.id,
+          owner_match.id
+        )
+      end
+
+      redirect_to @scout.project, notice: 'マッチングが成立しました！'
     else
       redirect_to root_path, notice: 'スカウトを承認しました'
     end
   rescue => e
+    Rails.logger.error("Scout accept error: #{e.message}")
+    Rails.logger.error(e.backtrace.join("\n"))
     redirect_to root_path, alert: 'スカウトの承認に失敗しました'
   end
 

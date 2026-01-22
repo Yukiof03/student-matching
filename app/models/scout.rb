@@ -33,13 +33,28 @@ class Scout < ApplicationRecord
     )
 
     if application
-      Match.create!(
-        project: project,
-        scout: self,
-        application: application,
-        matched_user_id: scouted_user_id,
-        matched_at: Time.current
-      )
+      # 双方向のMatchレコードを作成
+      ActiveRecord::Base.transaction do
+        # スキルホルダー用のMatchレコード
+        match_for_holder = Match.create!(
+          project: project,
+          scout: self,
+          application: application,
+          matched_user_id: scouted_user_id,  # スキルホルダー
+          matched_at: Time.current
+        )
+
+        # プロジェクトオーナー用のMatchレコード
+        Match.create!(
+          project: project,
+          scout: self,
+          application: application,
+          matched_user_id: project.owner_id,  # プロジェクトオーナー
+          matched_at: Time.current
+        )
+
+        match_for_holder
+      end
     end
   end
 end

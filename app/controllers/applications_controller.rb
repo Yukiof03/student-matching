@@ -52,6 +52,7 @@ class ApplicationsController < ApplicationController
     end
 
     match_created = false
+    match = nil
     ActiveRecord::Base.transaction do
       @application.update!(status: 'accepted')
       match = @application.check_and_create_match
@@ -59,16 +60,36 @@ class ApplicationsController < ApplicationController
     end
 
     if match_created
-      # マッチング成立時は、SNS情報表示用のフラッグをセッションに保存
+      # プロジェクトオーナー側: スキルホルダーのSNS情報を即座に表示
       session[:show_match_sns] = {
-        partner_id: @application.applicant.id,
-        project_id: @application.project.id
+        partner_id: @application.applicant.id,  # スキルホルダー
+        project_id: @application.project.id,
+        match_id: match.id
       }
+
+      # スキルホルダー側にも通知を保存（次回ログイン時に表示）
+      # スキルホルダーのMatchレコードを探す
+      holder_match = Match.find_by(
+        project_id: @application.project.id,
+        matched_user_id: @application.applicant.id
+      )
+
+      if holder_match
+        store_match_notification_for_user(
+          @application.applicant.id,  # 通知を受け取るユーザー（スキルホルダー）
+          current_user.id,  # パートナー（プロジェクトオーナー）
+          @application.project.id,
+          holder_match.id
+        )
+      end
+
       redirect_to @application.project, notice: 'マッチングが成立しました！'
     else
       redirect_to @application.project, notice: '応募を承認しました'
     end
   rescue => e
+    Rails.logger.error("Application accept error: #{e.message}")
+    Rails.logger.error(e.backtrace.join("\n"))
     redirect_to @application.project, alert: '応募の承認に失敗しました'
   end
 
