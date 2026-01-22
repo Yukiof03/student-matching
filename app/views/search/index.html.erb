@@ -117,10 +117,12 @@
                               <%= label_tag :project_select, 'プロジェクトを選択', class: 'form-label' %>
                               <%= select_tag :project_id,
                                   options_from_collection_for_select(current_user.projects.active, :id, :title),
-                                  { prompt: 'プロジェクトを選択してください' },
-                                  class: 'form-select',
-                                  required: true,
-                                  onchange: "document.getElementById('scoutForm#{user.id}').action = '/projects/' + this.value + '/scouts?user_id=#{user.id}'" %>
+                                  {
+                                    prompt: 'プロジェクトを選択してください',
+                                    class: 'form-select',
+                                    required: true,
+                                    onchange: "document.getElementById('scoutForm#{user.id}').action = '/projects/' + this.value + '/scouts?user_id=#{user.id}'"
+                                  } %>
                             </div>
                             <div class="mb-3">
                               <%= f.label :message, 'スカウトメッセージ', class: 'form-label' %>
