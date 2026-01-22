@@ -13,6 +13,8 @@ npm run build:css
 bundle exec rake assets:precompile
 bundle exec rake assets:clean
 
-# Run database migrations and seed
+# Run database migrations
 bundle exec rake db:migrate
-bundle exec rake db:seed
+
+# Seed data (ignore errors if data already exists)
+bundle exec rake db:seed || true
