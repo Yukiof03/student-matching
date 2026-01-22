@@ -61,30 +61,7 @@ class ScoutsController < ApplicationController
     end
 
     if match_created
-      # スキルホルダー側: プロジェクトオーナーのSNS情報を即座に表示
-      session[:show_match_sns] = {
-        partner_id: @scout.scout_user.id,  # プロジェクトオーナー
-        project_id: @scout.project.id,
-        match_id: match.id
-      }
-
-      # プロジェクトオーナー側にも通知を保存（次回ログイン時に表示）
-      # プロジェクトオーナーのMatchレコードを探す
-      owner_match = Match.find_by(
-        project_id: @scout.project.id,
-        matched_user_id: @scout.scout_user.id
-      )
-
-      if owner_match
-        store_match_notification_for_user(
-          @scout.scout_user.id,  # 通知を受け取るユーザー（プロジェクトオーナー）
-          current_user.id,  # パートナー（スキルホルダー）
-          @scout.project.id,
-          owner_match.id
-        )
-      end
-
-      redirect_to @scout.project, notice: 'マッチングが成立しました！'
+      redirect_to @scout.project, notice: 'マッチングが成立しました！お互いのSNS情報が表示されます。'
     else
       redirect_to root_path, notice: 'スカウトを承認しました'
     end

@@ -60,30 +60,7 @@ class ApplicationsController < ApplicationController
     end
 
     if match_created
-      # プロジェクトオーナー側: スキルホルダーのSNS情報を即座に表示
-      session[:show_match_sns] = {
-        partner_id: @application.applicant.id,  # スキルホルダー
-        project_id: @application.project.id,
-        match_id: match.id
-      }
-
-      # スキルホルダー側にも通知を保存（次回ログイン時に表示）
-      # スキルホルダーのMatchレコードを探す
-      holder_match = Match.find_by(
-        project_id: @application.project.id,
-        matched_user_id: @application.applicant.id
-      )
-
-      if holder_match
-        store_match_notification_for_user(
-          @application.applicant.id,  # 通知を受け取るユーザー（スキルホルダー）
-          current_user.id,  # パートナー（プロジェクトオーナー）
-          @application.project.id,
-          holder_match.id
-        )
-      end
-
-      redirect_to @application.project, notice: 'マッチングが成立しました！'
+      redirect_to @application.project, notice: 'マッチングが成立しました！お互いのSNS情報が表示されます。'
     else
       redirect_to @application.project, notice: '応募を承認しました'
     end

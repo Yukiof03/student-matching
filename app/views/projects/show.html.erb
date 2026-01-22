@@ -24,7 +24,7 @@
       <div class="card mb-4">
         <div class="card-body">
           <h6 class="text-muted mb-2">プロジェクトオーナー</h6>
-          <div class="d-flex align-items-center">
+          <div class="d-flex align-items-center mb-3">
             <div class="ms-2">
               <strong><%= @project.owner.name %></strong>
               <p class="mb-0 small text-muted">
@@ -32,6 +32,50 @@
               </p>
             </div>
           </div>
+
+          <%# マッチングが成立している場合、オーナーのSNS情報を表示 %>
+          <% if current_user && current_user != @project.owner %>
+            <% user_match = Match.find_by(project: @project, matched_user_id: current_user.id) %>
+            <% if user_match.present? %>
+              <div class="alert alert-success">
+                <h6 class="alert-heading">
+                  <i class="bi bi-check-circle-fill me-2"></i>
+                  マッチング成立！連絡先情報
+                </h6>
+                <% owner_sns_links = @project.owner.sns_links.where(visible_after_match: true) %>
+                <% if owner_sns_links.any? %>
+                  <div class="list-group list-group-flush">
+                    <% owner_sns_links.each do |sns_link| %>
+                      <a href="<%= sns_link.url %>" target="_blank" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <% case sns_link.platform %>
+                        <% when 'Twitter' %>
+                          <i class="bi bi-twitter me-2 text-primary"></i>
+                        <% when 'Instagram' %>
+                          <i class="bi bi-instagram me-2" style="color: #E4405F;"></i>
+                        <% when 'Facebook' %>
+                          <i class="bi bi-facebook me-2 text-primary"></i>
+                        <% when 'Discord' %>
+                          <i class="bi bi-discord me-2" style="color: #5865F2;"></i>
+                        <% when 'Slack' %>
+                          <i class="bi bi-slack me-2" style="color: #4A154B;"></i>
+                        <% when 'LINE' %>
+                          <i class="bi bi-line me-2" style="color: #00B900;"></i>
+                        <% when 'Email' %>
+                          <i class="bi bi-envelope me-2"></i>
+                        <% else %>
+                          <i class="bi bi-link-45deg me-2"></i>
+                        <% end %>
+                        <span><strong><%= sns_link.platform %>:</strong> <%= sns_link.url %></span>
+                        <i class="bi bi-box-arrow-up-right ms-auto"></i>
+                      </a>
+                    <% end %>
+                  </div>
+                <% else %>
+                  <p class="mb-0 small">まだ連絡先が登録されていません。</p>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
         </div>
       </div>
 
@@ -101,6 +145,47 @@
                         <p class="mb-0 text-muted small">
                           <%= truncate(application.applicant.skill_holder_profile.introduction, length: 200) %>
                         </p>
+                      </div>
+                    <% end %>
+
+                    <%# マッチングが成立している場合、応募者のSNS情報を表示 %>
+                    <% if application.status == 'accepted' && Match.exists?(project: @project, matched_user_id: application.applicant.id) %>
+                      <div class="alert alert-success mb-3">
+                        <h6 class="alert-heading">
+                          <i class="bi bi-check-circle-fill me-2"></i>
+                          マッチング成立！連絡先情報
+                        </h6>
+                        <% applicant_sns_links = application.applicant.sns_links.where(visible_after_match: true) %>
+                        <% if applicant_sns_links.any? %>
+                          <div class="list-group list-group-flush">
+                            <% applicant_sns_links.each do |sns_link| %>
+                              <a href="<%= sns_link.url %>" target="_blank" class="list-group-item list-group-item-action d-flex align-items-center py-2">
+                                <% case sns_link.platform %>
+                                <% when 'Twitter' %>
+                                  <i class="bi bi-twitter me-2 text-primary"></i>
+                                <% when 'Instagram' %>
+                                  <i class="bi bi-instagram me-2" style="color: #E4405F;"></i>
+                                <% when 'Facebook' %>
+                                  <i class="bi bi-facebook me-2 text-primary"></i>
+                                <% when 'Discord' %>
+                                  <i class="bi bi-discord me-2" style="color: #5865F2;"></i>
+                                <% when 'Slack' %>
+                                  <i class="bi bi-slack me-2" style="color: #4A154B;"></i>
+                                <% when 'LINE' %>
+                                  <i class="bi bi-line me-2" style="color: #00B900;"></i>
+                                <% when 'Email' %>
+                                  <i class="bi bi-envelope me-2"></i>
+                                <% else %>
+                                  <i class="bi bi-link-45deg me-2"></i>
+                                <% end %>
+                                <span><strong><%= sns_link.platform %>:</strong> <%= sns_link.url %></span>
+                                <i class="bi bi-box-arrow-up-right ms-auto"></i>
+                              </a>
+                            <% end %>
+                          </div>
+                        <% else %>
+                          <p class="mb-0 small">まだ連絡先が登録されていません。</p>
+                        <% end %>
                       </div>
                     <% end %>
 
