@@ -34,6 +34,8 @@ class Application < ApplicationRecord
     if scout
       # 双方向のMatchレコードを作成
       ActiveRecord::Base.transaction do
+        owner_id = project.owner_id
+
         # スキルホルダー用のMatchレコード
         match_for_holder = Match.create!(
           project: project,
@@ -48,7 +50,7 @@ class Application < ApplicationRecord
           project: project,
           scout: scout,
           application: self,
-          matched_user_id: project.owner_id,  # プロジェクトオーナー
+          matched_user_id: owner_id,  # プロジェクトオーナー
           matched_at: Time.current
         )
 
